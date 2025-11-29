@@ -1,0 +1,10 @@
+{
+    "products": [
+        { "id": "p1", "name": "Nasi Goreng Spesial", "price": 25000, "category": "Makanan" },
+        { "id": "p2", "name": "Ayam Bakar Madu", "price": 30000, "category": "Makanan" },
+        { "id": "p3", "name": "Es Teh Manis", "price": 5000, "category": "Minuman" },
+        { "id": "p4", "name": "Kopi Susu Gula Aren", "price": 18000, "category": "Minuman" },
+        { "id": "p5", "name": "Kerupuk Putih", "price": 2000, "category": "Tambahan" }
+    ],
+    "transactions": []
+}
