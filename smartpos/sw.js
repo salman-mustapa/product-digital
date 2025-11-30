@@ -10,7 +10,6 @@ const ASSETS_TO_CACHE = [
     './js/ui/dashboard.js',
     './js/ui/products.js',
     './js/ui/pos.js',
-    './js/ui/transactions.js',
     './js/ui/reports.js',
     './js/ui/employees.js',
     './js/ui/categories.js',
