@@ -59,6 +59,24 @@ const Auth = {
             return { success: true, user };
         }
 
+        // 3. Migration: Check if password matches Insecure Fallback Hash (from Localhost)
+        // This handles the case where user created account on HTTP (localhost) and logs in on HTTPS (GitHub Pages)
+        let fallbackHash = 5381;
+        for (let i = 0; i < password.length; i++) {
+            fallbackHash = ((fallbackHash << 5) + fallbackHash) + password.charCodeAt(i);
+        }
+        const fallbackHashHex = (fallbackHash >>> 0).toString(16).padStart(64, '0');
+
+        if (user.password === fallbackHashHex) {
+            console.log('Migrating insecure fallback hash to secure SHA-256...');
+            user.password = inputHash;
+            DB.update(DB.USERS, user.id, { password: inputHash });
+
+            this.currentUser = user;
+            localStorage.setItem('session_user', JSON.stringify(user));
+            return { success: true, user };
+        }
+
         return { success: false, message: 'Invalid email or password' };
     },
 
