@@ -1,6 +1,6 @@
 const API = {
     // Configuration
-    APPSCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwh_8TurNXzbVgC1dCCTDmOu63lsb5DoLTk_-EZXyaYdcH-KDQysuPLbTrquGBhZW1q/exec',
+    APPSCRIPT_URL: localStorage.getItem('appscript_url') || '',
     USE_MOCK: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:',
 
     // State
@@ -8,15 +8,36 @@ const API = {
     lastSyncTime: localStorage.getItem('last_sync_time') || null,
 
     // Initialize
-    init() {
+    async init() {
         console.log(`API Initialized. Mode: ${this.USE_MOCK ? 'MOCK' : 'ONLINE (AppScript)'}`);
-        if (!this.USE_MOCK && !this.APPSCRIPT_URL) {
-            console.warn('AppScript URL is missing. Please configure it in js/api.js');
-        }
 
-        // Initial Sync if online
-        if (navigator.onLine && !this.USE_MOCK) {
-            this.sync();
+        // Initial Sync if online and URL is configured
+        if (navigator.onLine && !this.USE_MOCK && this.APPSCRIPT_URL) {
+            try {
+                await this.sync();
+                console.log('Initial sync completed');
+            } catch (e) {
+                console.error('Initial sync failed:', e);
+            }
+        } else if (!this.APPSCRIPT_URL) {
+            console.log('AppScript URL not configured. Waiting for setup.');
+        }
+        return true;
+    },
+
+    async checkConnection(url) {
+        try {
+            const testUrl = new URL(url);
+            testUrl.searchParams.append('action', 'getUsers'); // Lightweight check
+
+            const response = await fetch(testUrl.toString());
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Connection check failed:', error);
+            return { success: false, message: error.message };
         }
     },
 
@@ -148,13 +169,27 @@ const API = {
             // 2. Fetch Latest Data
             const resProd = await this.request('getProducts', null, 'GET');
             const resTrans = await this.request('getTransactions', null, 'GET');
+            const resUsers = await this.request('getUsers', null, 'GET');
+            const resOutlets = await this.request('getOutlets', null, 'GET');
+
+            // Update Local Storage with fresh data
+            if (resUsers.success) localStorage.setItem('users', JSON.stringify(resUsers.data));
+            if (resOutlets.success) localStorage.setItem('outlets', JSON.stringify(resOutlets.data));
+            if (resProd.success) localStorage.setItem('products', JSON.stringify(resProd.data));
+            // Transactions usually appended, but for full sync we might overwrite or merge. 
+            // For now, let's overwrite to ensure consistency with server.
+            if (resTrans.success) localStorage.setItem('transactions', JSON.stringify(resTrans.data));
 
             this.lastSyncTime = new Date().toISOString();
             localStorage.setItem('last_sync_time', this.lastSyncTime);
             UI.updateSyncStatus('online');
 
             // Refresh UI if needed
-            if (App) App.refreshData();
+            if (typeof UI !== 'undefined' && UI.Layout) {
+                // Optional: Trigger a re-render of the active view
+                // const current = localStorage.getItem('current_view');
+                // if (current) UI.navigate(current);
+            }
 
         } catch (error) {
             console.error('Sync failed', error);

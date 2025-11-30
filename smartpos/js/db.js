@@ -6,20 +6,32 @@ const DB = {
     PRODUCTS: 'products',
     TRANSACTIONS: 'transactions',
 
+    // In-Memory Cache to reduce localStorage I/O
+    cache: {},
+
     // Helper to get table data
     get(table) {
+        if (this.cache[table]) {
+            return this.cache[table];
+        }
         const data = localStorage.getItem(table);
-        return data ? JSON.parse(data) : [];
+        const parsed = data ? JSON.parse(data) : [];
+        this.cache[table] = parsed;
+        return parsed;
     },
 
     // Helper to save table data
     save(table, data) {
+        this.cache[table] = data;
         localStorage.setItem(table, JSON.stringify(data));
     },
 
     // CRUD Operations
     findAll(table, query = {}) {
-        const data = this.get(table);
+        let data = this.get(table);
+        // Filter out deleted items
+        data = data.filter(item => !item.deleted);
+
         if (Object.keys(query).length === 0) return data;
 
         return data.filter(item => {
@@ -29,7 +41,7 @@ const DB = {
 
     findById(table, id) {
         const data = this.get(table);
-        return data.find(item => item.id === id);
+        return data.find(item => item.id === id && !item.deleted);
     },
 
     insert(table, item) {
@@ -49,6 +61,7 @@ const DB = {
         const newItem = {
             id: item.id || this.generateId(table),
             ...item,
+            deleted: false,
             created_at: item.created_at || new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
@@ -68,9 +81,15 @@ const DB = {
     },
 
     remove(table, id) {
-        let data = this.get(table);
-        data = data.filter(item => item.id !== id);
-        this.save(table, data);
+        const data = this.get(table);
+        const index = data.findIndex(item => item.id === id);
+
+        if (index >= 0) {
+            // Soft delete
+            data[index].deleted = true;
+            data[index].updated_at = new Date().toISOString();
+            this.save(table, data);
+        }
     },
 
     // Utilities

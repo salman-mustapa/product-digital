@@ -3,41 +3,54 @@ UI.POS = {
 
     render(container) {
         container.innerHTML = `
-            <div class="h-[calc(100vh-140px)] flex flex-col">
-                <div class="flex-none mb-4 space-y-4">
-                    <h2 class="text-2xl font-bold">Transaksi</h2>
-                    
-                    <div class="flex gap-2">
-                        <div class="relative flex-1">
-                            <input type="text" id="pos-search" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2 rounded-xl border-none bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary-500 dark:text-white">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="flex flex-col md:flex-row h-full gap-4">
+                <!-- Product Grid -->
+                <div class="flex-1 flex flex-col h-full overflow-hidden">
+                    <div class="glass-panel p-4 rounded-2xl mb-4 shadow-sm border border-white/20">
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" id="pos-search" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-3 rounded-xl input-neon dark:text-white shadow-sm">
+                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <select id="pos-category" class="w-full md:w-48 rounded-xl input-neon dark:text-white px-4 py-3 bg-transparent">
+                                <option value="" class="text-gray-800">Semua Kategori</option>
+                                ${DB.findAll(DB.CATEGORIES).map(c => `<option value="${c.id}" class="text-gray-800">${c.name}</option>`).join('')}
+                            </select>
                         </div>
-                        <select id="pos-category" class="rounded-xl border-none bg-white dark:bg-slate-800 shadow-sm dark:text-white px-4">
-                            <option value="">Semua Kategori</option>
-                            ${DB.findAll(DB.CATEGORIES).map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                        </select>
                     </div>
-                </div>
-
-                <div class="flex-1 overflow-y-auto pb-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 content-start" id="pos-list">
-                    <!-- List -->
+                    
+                    <div id="pos-products" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pb-24 md:pb-0 pr-2">
+                        <!-- Products Rendered Here -->
+                    </div>
                 </div>
                 
-                <!-- Cart Bar -->
-                <div class="fixed bottom-20 left-4 right-4 md:left-64 md:right-8 max-w-4xl mx-auto">
-                    <div class="bg-gray-900 dark:bg-slate-800 text-white p-4 rounded-2xl shadow-xl flex justify-between items-center cursor-pointer" onclick="UI.POS.showCart()">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center font-bold" id="cart-count">0</div>
-                            <div class="flex flex-col">
-                                <span class="text-xs text-gray-300">Total Bayar</span>
-                                <span class="font-bold text-lg" id="cart-total">Rp 0</span>
-                            </div>
+                <!-- Cart Sidebar (Desktop) -->
+                <div class="hidden md:flex flex-col w-96 glass-panel rounded-2xl shadow-sm border border-white/20 h-full overflow-hidden">
+                    <div class="p-4 border-b border-white/10">
+                        <h3 class="font-bold text-lg dark:text-white">Keranjang</h3>
+                    </div>
+                    <div id="pos-cart-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+                        <!-- Cart Items -->
+                    </div>
+                    <div class="p-4 border-t border-white/10 bg-white/5">
+                        <div class="flex justify-between mb-4">
+                            <span class="text-gray-600 dark:text-gray-300">Total</span>
+                            <span class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="pos-total">Rp 0</span>
                         </div>
-                        <div class="flex items-center gap-2 font-medium text-primary-400">
-                            Lihat Pesanan
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <button onclick="UI.POS.checkout()" id="pos-checkout-btn" class="w-full py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-neon disabled:opacity-50 disabled:cursor-not-allowed">Bayar Sekarang</button>
+                    </div>
+                </div>
+                
+                <!-- Floating Cart (Mobile) -->
+                <div id="mobile-cart-bar" class="md:hidden fixed bottom-24 left-4 right-4 glass-panel p-4 rounded-2xl shadow-neon border border-white/20 flex justify-between items-center z-30 cursor-pointer hidden" onclick="UI.POS.toggleMobileCart()">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold" id="mobile-cart-count">0</div>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Total</span>
+                            <span class="font-bold text-lg dark:text-white" id="mobile-cart-total">Rp 0</span>
                         </div>
                     </div>
+                    <button class="bg-primary-600 text-white px-6 py-2 rounded-xl font-bold shadow-neon">Lihat</button>
                 </div>
             </div>
         `;
@@ -49,29 +62,49 @@ UI.POS = {
     },
 
     loadProducts() {
-        const list = document.getElementById('pos-list');
+        const list = document.getElementById('pos-products');
         const search = document.getElementById('pos-search').value.toLowerCase();
         const category = document.getElementById('pos-category').value;
 
         let products = DB.findAll(DB.PRODUCTS);
+        const accessibleOutlets = Auth.getAccessibleOutlets();
+        const accessibleOutletIds = accessibleOutlets.map(o => o.id);
+
+        // Filter products to only those in accessible outlets
+        products = products.filter(p => accessibleOutletIds.includes(p.outlet_id));
 
         if (search) products = products.filter(p => p.name.toLowerCase().includes(search));
         if (category) products = products.filter(p => p.category_id === category);
 
         list.innerHTML = products.map(p => {
             const isOutOfStock = p.stock <= 0;
+            const outlet = DB.findById(DB.OUTLETS, p.outlet_id);
+            const outletName = outlet ? outlet.name : 'Unknown Outlet';
+
+            const isAdmin = Auth.currentUser.role === 'admin';
+            const isDisabled = isOutOfStock || isAdmin;
+
             return `
-                <div onclick="${isOutOfStock ? '' : `UI.POS.addToCart('${p.id}')`}" class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 ${isOutOfStock ? 'opacity-60 cursor-not-allowed' : 'active:scale-95 cursor-pointer'} transition-transform h-full flex flex-col justify-between relative overflow-hidden">
-                    ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center font-bold text-red-600 -rotate-12">HABIS</div>' : ''}
-                    <div>
-                        <h4 class="font-semibold text-sm line-clamp-2 dark:text-white">${p.name}</h4>
+                <div onclick="${isDisabled ? '' : `UI.POS.addToCart('${p.id}')`}" class="glass-panel p-3 rounded-2xl shadow-sm border border-white/20 ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary-500'} transition-all h-full flex flex-col justify-between relative overflow-hidden group">
+                    ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center font-bold text-red-600 -rotate-12 z-10">HABIS</div>' : ''}
+                    ${isAdmin && !isOutOfStock ? `<div class="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center font-bold text-gray-800 dark:text-white text-center p-2 z-10 text-xs">Hanya outlet<br>${outletName}</div>` : ''}
+                    
+                    <div class="aspect-square rounded-xl bg-gray-100 dark:bg-slate-700 mb-2 overflow-hidden">
+                        ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">` : '<div class="w-full h-full flex items-center justify-center text-2xl">📦</div>'}
                     </div>
-                    <div class="mt-3 flex justify-between items-end">
+                    <div>
+                        <h4 class="font-bold text-sm dark:text-white line-clamp-1">${p.name}</h4>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            ${outletName}
+                        </p>
+                    </div>
+                    <div class="mt-2 flex justify-between items-end">
                         <div>
                             <span class="text-primary-600 dark:text-primary-400 font-bold text-sm">Rp ${parseInt(p.price).toLocaleString('id-ID')}</span>
                             <p class="text-[10px] text-gray-400">Stok: ${p.stock}</p>
                         </div>
-                        <div class="w-6 h-6 bg-primary-50 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400">
+                        <div class="w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 group-hover:bg-primary-600 group-hover:text-white transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </div>
                     </div>
@@ -102,47 +135,100 @@ UI.POS = {
         const totalQty = this.cart.reduce((sum, i) => sum + i.qty, 0);
         const totalPrice = this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
-        document.getElementById('cart-count').textContent = totalQty;
-        document.getElementById('cart-total').textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+        // Update Desktop Cart
+        const cartItems = document.getElementById('pos-cart-items');
+        if (cartItems) {
+            cartItems.innerHTML = this.cart.map(item => `
+                <div class="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10 animate-fade-in">
+                    <div class="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden flex-shrink-0">
+                        ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center">📦</div>'}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-sm dark:text-white line-clamp-1">${item.name}</h4>
+                        <p class="text-xs text-primary-600 dark:text-primary-400">Rp ${item.price.toLocaleString('id-ID')}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="UI.POS.updateQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200">-</button>
+                        <span class="text-sm font-bold w-4 text-center dark:text-white">${item.qty}</span>
+                        <button onclick="UI.POS.updateQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-primary-100 text-primary-600 hover:bg-primary-200">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            if (this.cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-50">
+                        <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <p>Keranjang Kosong</p>
+                    </div>
+                `;
+            }
+        }
+
+        const totalEl = document.getElementById('pos-total');
+        if (totalEl) totalEl.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+
+        const checkoutBtn = document.getElementById('pos-checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.disabled = this.cart.length === 0;
+            if (this.cart.length === 0) checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            else checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // Update Mobile Cart Bar
+        const mobileCount = document.getElementById('mobile-cart-count');
+        const mobileTotal = document.getElementById('mobile-cart-total');
+        const mobileBar = document.getElementById('mobile-cart-bar');
+
+        if (mobileCount) mobileCount.textContent = totalQty;
+        if (mobileTotal) mobileTotal.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+
+        if (mobileBar) {
+            if (this.cart.length > 0) mobileBar.classList.remove('hidden');
+            else mobileBar.classList.add('hidden');
+        }
     },
 
-    showCart() {
-        const overlay = document.getElementById('modal-overlay');
-        overlay.classList.remove('hidden');
+    toggleMobileCart() {
+        // Reuse the modal logic but customized for cart
+        const modal = document.getElementById('modal-overlay');
+        modal.classList.remove('hidden');
 
         const total = this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
-        overlay.innerHTML = `
-            <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl h-[80vh] sm:h-auto flex flex-col animate-slide-up">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold dark:text-white">Detail Pesanan</h3>
-                    <button onclick="document.getElementById('modal-overlay').classList.add('hidden')" class="p-2 text-gray-400 hover:text-gray-600">
+        modal.innerHTML = `
+            <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl m-4 flex flex-col h-[80vh] animate-slide-up">
+                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-4">
+                    <h3 class="font-bold text-lg dark:text-white">Keranjang Belanja</h3>
+                    <button onclick="document.getElementById('modal-overlay').classList.add('hidden')" class="p-2 hover:bg-white/10 rounded-lg">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto -mx-2 px-2 space-y-3">
+                <div class="flex-1 overflow-y-auto space-y-3 pr-2">
                     ${this.cart.map(item => `
-                        <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
-                            <div class="flex-1">
-                                <h4 class="font-medium dark:text-white">${item.name}</h4>
-                                <p class="text-sm text-gray-500">Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</p>
+                        <div class="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10">
+                            <div class="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden flex-shrink-0">
+                                ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center">📦</div>'}
                             </div>
-                            <div class="flex items-center gap-3">
-                                <button onclick="UI.POS.updateQty('${item.id}', -1)" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300">-</button>
-                                <span class="font-medium w-4 text-center dark:text-white">${item.qty}</span>
-                                <button onclick="UI.POS.updateQty('${item.id}', 1)" class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">+</button>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-sm dark:text-white line-clamp-1">${item.name}</h4>
+                                <p class="text-xs text-primary-600 dark:text-primary-400">Rp ${item.price.toLocaleString('id-ID')}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="UI.POS.updateQty('${item.id}', -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200">-</button>
+                                <span class="text-sm font-bold w-4 text-center dark:text-white">${item.qty}</span>
+                                <button onclick="UI.POS.updateQty('${item.id}', 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-primary-100 text-primary-600 hover:bg-primary-200">+</button>
                             </div>
                         </div>
                     `).join('')}
+                    ${this.cart.length === 0 ? '<p class="text-center text-gray-500 py-8">Keranjang kosong</p>' : ''}
                 </div>
-
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="pt-4 border-t border-white/10 mt-4">
+                    <div class="flex justify-between mb-4">
                         <span class="text-gray-600 dark:text-gray-400">Total</span>
                         <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">Rp ${total.toLocaleString('id-ID')}</span>
                     </div>
-                    <button onclick="UI.POS.checkout()" ${this.cart.length === 0 ? 'disabled' : ''} class="w-full py-3 bg-primary-600 disabled:bg-gray-300 text-white rounded-xl font-bold hover:bg-primary-700">Bayar Sekarang</button>
+                    <button onclick="UI.POS.checkout()" ${this.cart.length === 0 ? 'disabled' : ''} class="w-full py-3 bg-primary-600 disabled:bg-gray-300 text-white rounded-xl font-bold hover:bg-primary-700 shadow-neon">Bayar Sekarang</button>
                 </div>
             </div>
         `;
@@ -164,7 +250,11 @@ UI.POS = {
         if (item.qty <= 0) this.cart.splice(index, 1);
 
         this.updateCartUI();
-        this.showCart(); // Refresh modal
+        // If mobile modal is open, refresh it
+        const modal = document.getElementById('modal-overlay');
+        if (!modal.classList.contains('hidden') && modal.innerHTML.includes('Keranjang Belanja')) {
+            this.toggleMobileCart();
+        }
     },
 
     checkout() {
@@ -177,12 +267,23 @@ UI.POS = {
         });
 
         // 2. Save Transaction
+        // OPTIMIZATION: Only save essential fields to save space and avoid QuotaExceededError
+        const itemsToSave = this.cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            qty: item.qty
+        }));
+
         DB.insert(DB.TRANSACTIONS, {
             outlet_id: Auth.currentUser.outlet_id,
-            items: this.cart,
+            items: itemsToSave,
             total: total,
             date: new Date().toISOString(),
-            payment_method: 'cash'
+            payment_method: 'cash',
+            user_id: Auth.currentUser.id,
+            user_name: Auth.currentUser.name,
+            outlet_name: (DB.findById(DB.OUTLETS, Auth.currentUser.outlet_id) || {}).name || 'Unknown'
         });
 
         alert('Transaksi Berhasil!');
