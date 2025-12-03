@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peta IP Tooltip (Anti Menumpuk)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; }
+        .tooltip-ip {
+            background: white;
+            padding: 4px 8px;
+            border: 1px solid #888;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .data-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            width: 260px;
+        }
+
+        .data-panel table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-panel th, .data-panel td {
+            border-bottom: 1px solid #ddd;
+            padding: 4px;
+            text-align: left;
+        }
+
+        .data-panel th {
+            background: #f1f1f1;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+<h3>Peta Lokasi IP (Tooltip Permanent + Anti Menumpuk)</h3>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+    const DEFAULT_LAT = 1.4748;
+    const DEFAULT_LNG = 124.8421;
+
+    const map = L.map('map').setView([0, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+
+    function getRandomColor() {
+        const colors = ["red","blue","green","purple","orange","darkred","cadetblue","darkgreen","darkpurple"];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // offset agar marker tidak menumpuk di koordinat default
+    function jitter(value) {
+        // offset kecil, aman untuk peta
+        const offset = (Math.random() - 0.5) * 0.02; 
+        return value + offset;
+    }
+
+    Papa.parse("data_ip.csv", {
+        download: true,
+        header: true,
+        complete: res => {
+            renderMarkers(res.data);
+            updatePanel(res.data); // UPDATE PANEL TABEL
+        }
+    });
+
+    function renderMarkers(rows) {
+        rows.forEach(row => {
+            let lat = DEFAULT_LAT;
+            let lng = DEFAULT_LNG;
+
+            // cek jika location valid
+            if (row.location && row.location.includes(",")) {
+                const [la, lo] = row.location.split(",");
+                const latNum = parseFloat(la);
+                const lngNum = parseFloat(lo);
+
+                if (!isNaN(latNum) && !isNaN(lngNum)) {
+                    lat = latNum;
+                    lng = lngNum;
+                }
+            }
+
+            // jika negara/benua null → fallback Manado (dengan jitter)
+            if (!row.negara || !row.benua || !row.location) {
+                lat = jitter(DEFAULT_LAT);
+                lng = jitter(DEFAULT_LNG);
+            }
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 8,
+                color: getRandomColor(),
+                fillOpacity: 0.9
+            }).addTo(map);
+
+            const tooltipText = `
+                IP: ${row.ip || "-"}<br>
+                Jumlah: ${row.jumlah || "-"}<br>
+                Negara: ${row.negara || "Indonesia"}<br>
+                Benua: ${row.benua || "Asia"}
+            `;
+
+            marker.bindTooltip(tooltipText, {
+                permanent: true,
+                direction: "top",
+                className: "tooltip-ip"
+            });
+        });
+    }
+
+    const DataPanel = L.Control.extend({
+        onAdd: function(map) {
+            this._div = L.DomUtil.create('div', 'data-panel');
+            this._div.innerHTML = "<b>Loading data...</b>";
+            return this._div;
+        }
+    });
+    const dataPanel = new DataPanel({ position: "topright" });
+    dataPanel.addTo(map);
+
+    // fungsi update tabel
+    function updatePanel(rows) {
+        let html = `
+            <b>Total Data: ${rows.length}</b><br><br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>Jumlah</th>
+                        <th>Negara</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        rows.forEach(r => {
+            html += `
+                <tr>
+                    <td>${r.ip || "-"}</td>
+                    <td>${r.jumlah || "-"}</td>
+                    <td>${r.negara || "Indonesia"}</td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+
+        dataPanel._div.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>

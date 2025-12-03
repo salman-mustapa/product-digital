@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="system">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 Not Found - GLM Dashboard</title>
+    <!-- Head section is the same as login.html, just change the title -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+            },
+            fontFamily: { quicksand: ["Quicksand", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen relative"
+  >
+    <!-- Theme Switcher -->
+    <div
+      class="absolute top-4 right-4 flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-gray-700"
+    >
+      <button
+        id="lightTheme"
+        class="theme-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+        title="Light Mode"
+      >
+        <svg
+          class="w-5 h-5 text-yellow-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </button>
+      <button
+        id="darkTheme"
+        class="theme-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+        title="Dark Mode"
+      >
+        <svg
+          class="w-5 h-5 text-gray-700 dark:text-gray-300"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+          ></path>
+        </svg>
+      </button>
+      <button
+        id="systemTheme"
+        class="theme-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+        title="System Mode"
+      >
+        <svg
+          class="w-5 h-5 text-gray-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8h8V6z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <div class="text-center">
+      <h1 class="text-9xl font-bold text-primary-600 dark:text-primary-400">
+        404
+      </h1>
+      <h2 class="text-4xl font-bold mt-4 mb-2 text-gray-800 dark:text-white">
+        Page Not Found
+      </h2>
+      <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+        Sorry, we couldn't find the page you're looking for.
+      </p>
+      <a
+        href="../index.html"
+        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+        >Go Home</a
+      >
+    </div>
+    <script src="../assets/js/app.js"></script>
+  </body>
+</html>
